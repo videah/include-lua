@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use proc_macro_hack::proc_macro_hack;
-use rlua::{Result, Context, UserData, UserDataMethods, MetaMethod, Value, Table, RegistryKey};
+use mlua::{Result, UserData, UserDataMethods, MetaMethod, Value, Table, RegistryKey, Lua};
 
 /// A macro that embeds a lua source tree on disk into the binary, similarly to how `include_str!`
 /// can include a single file. Called like `include_lua!("name": "path")`, where name is a label
@@ -19,7 +19,7 @@ pub struct LuaModules {
 impl LuaModules {
     #[doc(hidden)] // This is not a public API!
     pub fn __new(files: HashMap<String, (String, String)>, prefix: &str) -> LuaModules {
-        LuaModules { files: files, prefix: prefix.to_string() }
+        LuaModules { files, prefix: prefix.to_string() }
     }
 }
 
@@ -62,13 +62,13 @@ pub trait ContextExt<'a> {
     fn make_searcher_with_env(&self, modules: LuaModules, environment: Table<'a>) -> Result<Searcher>;
 }
 
-impl<'a> ContextExt<'a> for Context<'a> {
+impl<'a> ContextExt<'a> for Lua {
     fn add_modules(&self, modules: LuaModules) -> Result<()> {
         self.add_modules_with_env(modules, self.globals())
     }
 
     fn add_modules_with_env(&self, modules: LuaModules, environment: Table<'a>) -> Result<()> {
-        let searchers: Table = self.globals().get::<_, Table>("package")?.get("searchers")?;
+        let searchers: Table = self.globals().get::<_, Table>("package")?.get("loaders")?;
         searchers.set(searchers.len()? + 1, self.make_searcher_with_env(modules, environment)?)
     }
 

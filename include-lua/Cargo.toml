@@ -9,6 +9,6 @@ authors = ["AlphaModder"]
 edition = "2018"
 
 [dependencies]
-rlua = { version = "0.16", default-features = false }
+mlua = { version = "0.3", default-features = false }
 include-lua-macro = "0.1.2"
 proc-macro-hack = "0.5.4"
